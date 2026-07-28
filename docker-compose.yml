@@ -21,11 +21,11 @@ services:
     ports:
       - "${BACKEND_PORT:-4500}:27492"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:49532/${POSTGRES_DB:-ai_platform}
-      - REDIS_URL=redis://redis:38921/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ai_platform}
+      - REDIS_URL=redis://redis:6379/0
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://10.101.66.11:11434}
       - QDRANT_HOST=qdrant
-      - QDRANT_PORT=57388
+      - QDRANT_PORT=6333
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production-use-a-random-string}
       - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
       - MODEL_GENERAL=${MODEL_GENERAL:-qwen2.5:7b}
