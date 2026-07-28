@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     MODEL_CODING: str = "qwen2.5-coder:32b"
     MODEL_EMBEDDINGS: str = "bge-m3:latest"
     MODEL_FAST: str = "qwen2.5:7b"
+    MODEL_VISION: str = "llama3.2-vision"
 
     RATE_LIMIT_PER_MINUTE: int = 20
 

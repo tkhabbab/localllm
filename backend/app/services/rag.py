@@ -9,7 +9,7 @@ import pypdf
 
 from app.config import get_settings
 from app.services.ollama_client import ollama_client
-from app.services.ocr import extract_text_from_image, extract_text_from_pdf_ocr
+from app.services.vision import extract_text_from_image_vision, extract_text_from_pdf_vision
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +70,10 @@ async def ingest_document(file_path: str, document_id: int):
     if ext == ".pdf":
         text, page_count, has_text = _extract_pdf_text(file_path)
         if not has_text:
-            logger.info(f"PDF {document_id} has no text layer, using OCR")
-            text, page_count = await asyncio.to_thread(extract_text_from_pdf_ocr, file_path)
+            logger.info(f"PDF {document_id} has no text layer, using Vision Model OCR")
+            text, page_count = await extract_text_from_pdf_vision(file_path)
     elif ext in {".png", ".jpg", ".jpeg", ".tiff", ".bmp"}:
-        text = await asyncio.to_thread(extract_text_from_image, file_path)
+        text = await extract_text_from_image_vision(file_path)
         page_count = 1
     else:
         raise ValueError(f"Unsupported file type: {ext}")

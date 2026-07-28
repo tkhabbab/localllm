@@ -33,6 +33,7 @@ services:
       - MODEL_CODING=qwen2.5-coder:32b
       - MODEL_EMBEDDINGS=bge-m3:latest
       - MODEL_FAST=qwen2.5:7b
+      - MODEL_VISION=llama3.2-vision
       - UPLOAD_DIR=/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
