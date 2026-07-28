@@ -181,8 +181,9 @@ async def send_message(
     has_docs = len(attached_docs) > 0
 
     start_time = time.time()
-    intent = await classify_intent(data.content, has_docs)
-    model = get_model_for_intent(intent, data.model_override)
+    classification = await classify_intent(data.content, has_docs)
+    intent_str = classification.intent.value
+    model = get_model_for_intent(classification, data.model_override)
     display_name = get_model_display_name(model)
 
     history_result = await db.execute(
@@ -203,7 +204,7 @@ async def send_message(
         "e.g., 'kemon acho', 'ki khobor', 'ami bhalo achi'), you must reply in pure Bengali script (বাংলা)."
     )
 
-    if has_docs and intent == "document_qa":
+    if has_docs and intent_str == "document_qa":
         context_text = ""
         for doc in attached_docs:
             ctx = await retrieve_context(data.content, doc.id)
@@ -229,7 +230,7 @@ async def send_message(
     async def stream_response():
         full_response = ""
         try:
-            yield f"data: {json.dumps({'type': 'meta', 'intent': intent, 'model': display_name})}\n\n"
+            yield f"data: {json.dumps({'type': 'meta', 'intent': intent_str, 'model': display_name})}\n\n"
 
             async for chunk in ollama_client.chat_stream(model, messages):
                 full_response += chunk
@@ -237,7 +238,7 @@ async def send_message(
 
             latency = time.time() - start_time
             logger.info(
-                f"Chat completed: intent={intent}, model={model}, "
+                f"Chat completed: intent={intent_str}, model={model}, "
                 f"latency={latency:.2f}s, tokens~{len(full_response.split())}"
             )
 

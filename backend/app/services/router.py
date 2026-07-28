@@ -1,11 +1,110 @@
 import re
 import json
 import logging
+from enum import Enum
+from dataclasses import dataclass
+from typing import Callable
 
-from app.config import get_settings
+from app.config import get_settings, Settings
 from app.services.ollama_client import ollama_client
 
 logger = logging.getLogger(__name__)
+
+
+class Intent(Enum):
+    """Enumeration of all supported user intents."""
+    GENERAL = "general"
+    CONVERSATIONAL = "conversational"
+    COMPLEX = "complex"
+    CODING = "coding"
+    DOCUMENT_QA = "document_qa"
+
+
+@dataclass(slots=True)
+class ClassificationResult:
+    """Represents the outcome of a message intent classification."""
+    intent: Intent
+    confidence: float
+    source: str
+
+
+# Immutable routing table mapping intents to functions that lazily retrieve models.
+# This prevents holding stale references to settings and centralizes routing logic.
+# Adding a new intent (e.g., Intent.SEARCH) only requires adding one line here.
+ROUTING_TABLE: dict[Intent, Callable[[Settings], str]] = {
+    Intent.GENERAL: lambda s: s.MODEL_GENERAL,
+    Intent.CONVERSATIONAL: lambda s: s.MODEL_GENERAL,
+    Intent.COMPLEX: lambda s: s.MODEL_COMPLEX,
+    Intent.CODING: lambda s: s.MODEL_CODING,
+    Intent.DOCUMENT_QA: lambda s: s.MODEL_COMPLEX,
+}
+
+MODEL_DISPLAY_NAMES = {
+    "qwen2.5:7b": "Qwen2.5 7B (General)",
+    "qwen2.5:32b": "Qwen2.5 32B (Complex)",
+    "qwen2.5-coder:32b": "Qwen2.5 Coder 32B (Coding)",
+    "qwen3:32b": "Qwen3 32B",
+    "qwen3.6:27b": "Qwen3.6 27B",
+    "gemma4:26b": "Gemma4 26B",
+    "llama3.2-vision:latest": "Llama 3.2 Vision",
+    "bge-m3:latest": "BGE-M3 (Embeddings)",
+}
+
+
+def get_model_display_name(model: str) -> str:
+    """Returns a user-friendly display name for a given model identifier."""
+    return MODEL_DISPLAY_NAMES.get(model, model)
+
+
+def get_model_for_intent(
+    result: ClassificationResult | Intent | str,
+    model_override: str | None = None,
+) -> str:
+    """
+    Determines the appropriate model to use based on the classified intent.
+    
+    Priority:
+    1. model_override (if provided)
+    2. result (ClassificationResult, Intent, or string mapped via ROUTING_TABLE)
+    3. Fallback to GENERAL intent model.
+    """
+    if model_override:
+        return model_override
+
+    # 1. Safely extract the Intent enum value
+    intent_enum = Intent.GENERAL
+    try:
+        if isinstance(result, ClassificationResult):
+            intent_enum = result.intent
+        elif isinstance(result, Intent):
+            intent_enum = result
+        elif isinstance(result, str):
+            # Attempt to map string directly to enum (case-insensitive)
+            # This handles backwards compatibility if callers still pass raw strings.
+            cleaned_str = result.strip().lower()
+            intent_enum = Intent(cleaned_str)
+    except ValueError:
+        logger.warning(
+            f"Invalid intent provided: '{result}'. Falling back to {Intent.GENERAL.name}."
+        )
+        intent_enum = Intent.GENERAL
+
+    # 2. Look up the model retriever from the routing table
+    model_retriever = ROUTING_TABLE.get(intent_enum)
+    if not model_retriever:
+        logger.error(
+            f"Intent {intent_enum.name} is missing from ROUTING_TABLE. "
+            f"Falling back to {Intent.GENERAL.name}."
+        )
+        model_retriever = ROUTING_TABLE[Intent.GENERAL]
+
+    # 3. Resolve the model using the current settings
+    settings = get_settings()
+    selected_model = model_retriever(settings)
+    
+    logger.debug(f"Routed intent '{intent_enum.value}' to model '{selected_model}'")
+    return selected_model
+
 
 CODE_PATTERNS = [
     r"```",
@@ -45,33 +144,27 @@ COMPLEX_KEYWORDS = {
 }
 
 
-def _heuristic_classify(message: str, has_attached_docs: bool) -> str | None:
+def _heuristic_classify(message: str, has_attached_docs: bool) -> ClassificationResult | None:
+    """Uses fast pattern matching to classify intent without calling the LLM."""
     if has_attached_docs:
-        return "document_qa"
+        return ClassificationResult(intent=Intent.DOCUMENT_QA, confidence=1.0, source="heuristic")
 
     lower = message.lower()
-
-    code_score = 0
-    for pattern in CODE_PATTERNS:
-        if re.search(pattern, message):
-            code_score += 2
-
-    for kw in CODE_KEYWORDS:
-        if kw in lower:
-            code_score += 1
+    code_score = sum(2 for p in CODE_PATTERNS if re.search(p, message))
+    code_score += sum(1 for kw in CODE_KEYWORDS if kw in lower)
 
     if code_score >= 3:
-        return "coding"
+        return ClassificationResult(intent=Intent.CODING, confidence=0.85, source="heuristic")
 
     complex_score = sum(1 for kw in COMPLEX_KEYWORDS if kw in lower)
     if complex_score >= 2 or len(message) > 500:
-        return "complex"
+        return ClassificationResult(intent=Intent.COMPLEX, confidence=0.75, source="heuristic")
 
     if code_score >= 1 and len(message) > 200:
-        return None
+        return None  # Uncertain, defer to LLM
 
     if code_score == 0 and complex_score == 0:
-        return "general"
+        return ClassificationResult(intent=Intent.GENERAL, confidence=0.6, source="heuristic")
 
     return None
 
@@ -94,12 +187,15 @@ Category:"""
 
 async def classify_intent(
     user_message: str, has_attached_docs: bool = False
-) -> str:
-    result = _heuristic_classify(user_message, has_attached_docs)
-    if result is not None:
-        logger.info(f"Heuristic classification: {result}")
-        return result
+) -> ClassificationResult:
+    """Classifies a user message and returns a confidence-scored ClassificationResult."""
+    # 1. Attempt fast heuristic classification first
+    heuristic_result = _heuristic_classify(user_message, has_attached_docs)
+    if heuristic_result is not None:
+        logger.info(f"Heuristic classification: {heuristic_result.intent.value}")
+        return heuristic_result
 
+    # 2. Fall back to LLM-based classification
     settings = get_settings()
     try:
         response = await ollama_client.chat(
@@ -110,43 +206,19 @@ async def classify_intent(
             temperature=0.1,
         )
         cleaned = response.strip().lower().rstrip(".")
+        
+        # Scan for recognized intent values
         for token in cleaned.split():
-            if token in ("general", "conversational", "complex", "coding", "document_qa"):
-                logger.info(f"LLM classification: {token}")
-                return token
-        logger.warning(f"LLM returned unexpected classification: {cleaned}, defaulting to general")
-        return "general"
+            try:
+                intent_enum = Intent(token)
+                logger.info(f"LLM classification: {intent_enum.value}")
+                return ClassificationResult(intent=intent_enum, confidence=0.9, source="llm")
+            except ValueError:
+                continue
+                
+        logger.warning(f"LLM returned unexpected classification: {cleaned}. Defaulting to general.")
     except Exception as e:
-        logger.error(f"Classification LLM call failed: {e}, defaulting to general")
-        return "general"
+        logger.error(f"Classification LLM call failed: {e}. Defaulting to general.")
 
-
-def get_model_for_intent(intent: str, model_override: str | None = None) -> str:
-    if model_override:
-        return model_override
-    
-    settings = get_settings()
-    mapping = {
-        "general": settings.MODEL_GENERAL,
-        "conversational": settings.MODEL_GENERAL,
-        "complex": settings.MODEL_COMPLEX,
-        "coding": settings.MODEL_CODING,
-        "document_qa": settings.MODEL_COMPLEX,
-    }
-    return mapping.get(intent, settings.MODEL_GENERAL)
-
-
-MODEL_DISPLAY_NAMES = {
-    "qwen2.5:7b": "Qwen2.5 7B (General)",
-    "qwen2.5:32b": "Qwen2.5 32B (Complex)",
-    "qwen2.5-coder:32b": "Qwen2.5 Coder 32B (Coding)",
-    "qwen3:32b": "Qwen3 32B",
-    "qwen3.6:27b": "Qwen3.6 27B",
-    "gemma4:26b": "Gemma4 26B",
-    "llama3.2-vision:latest": "Llama 3.2 Vision",
-    "bge-m3:latest": "BGE-M3 (Embeddings)",
-}
-
-
-def get_model_display_name(model: str) -> str:
-    return MODEL_DISPLAY_NAMES.get(model, model)
+    # Safe fallback
+    return ClassificationResult(intent=Intent.GENERAL, confidence=0.0, source="fallback")
