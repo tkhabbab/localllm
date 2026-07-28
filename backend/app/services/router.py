@@ -76,18 +76,19 @@ def _heuristic_classify(message: str, has_attached_docs: bool) -> str | None:
     return None
 
 
-CLASSIFICATION_PROMPT = """You are a message classifier. Classify the user's message into exactly one category.
-Reply with ONLY one word: general, conversational, complex, coding, or document_qa
+CLASSIFICATION_PROMPT = """Your job is to analyze every user request and select the most appropriate model category before answering.
+You are an expert message classifier for an enterprise AI system. Your ONLY task is to output EXACTLY ONE word that represents the category of the user's message.
 
-Categories:
-- general: casual greetings, yes/no, short responses, simple queries
-- conversational: creative writing, translation, long summaries, conversational answers, explanations
-- complex: math, logic, system architecture, comparison, deep analytical reasoning
-- coding: writing code, debugging, scripts, database queries
-- document_qa: questions about uploaded documents (only if referencing a document)
+Categories available:
+- general: Simple greetings, yes/no answers, short questions, or factual lookups that require minimal reasoning.
+- conversational: Creative writing, translations, summarizing long text, or broad conversational topics.
+- complex: Advanced logic, math, system architecture design, comparing/contrasting, or deep analytical reasoning.
+- coding: Writing code, debugging, analyzing stack traces, reviewing scripts, or database queries.
+- document_qa: Questions that explicitly ask about an uploaded document, file, or image.
 
 User message: {message}
 
+You must respond with ONLY ONE WORD from the list above. No explanations.
 Category:"""
 
 
@@ -141,6 +142,8 @@ MODEL_DISPLAY_NAMES = {
     "qwen2.5-coder:32b": "Qwen2.5 Coder 32B (Coding)",
     "qwen3:32b": "Qwen3 32B",
     "qwen3.6:27b": "Qwen3.6 27B",
+    "gemma4:26b": "Gemma4 26B",
+    "llama3.2-vision:latest": "Llama 3.2 Vision",
     "bge-m3:latest": "BGE-M3 (Embeddings)",
 }
 
