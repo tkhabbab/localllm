@@ -4,7 +4,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "${FRONTEND_PORT:-3000}:19853"
+      - "${FRONTEND_PORT:-4400}:19853"
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.101.66.11:8080}
     depends_on:
