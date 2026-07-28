@@ -23,13 +23,13 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:49532/${POSTGRES_DB:-ai_platform}
       - REDIS_URL=redis://redis:38921/0
-      - OLLAMA_BASE_URL=http://10.101.66.11:11435
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=57388
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production-use-a-random-string}
       - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
       - MODEL_GENERAL=${MODEL_GENERAL:-qwen2.5:7b}
-      - MODEL_COMPLEX=${MODEL_COMPLEX:-qwen2.5:32b}
+      - MODEL_COMPLEX=${MODEL_COMPLEX:-qwen3:32b}
       - MODEL_CODING=${MODEL_CODING:-qwen2.5-coder:32b}
       - MODEL_EMBEDDINGS=${MODEL_EMBEDDINGS:-bge-m3:latest}
       - MODEL_FAST=${MODEL_FAST:-qwen2.5:7b}
