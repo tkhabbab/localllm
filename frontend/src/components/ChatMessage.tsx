@@ -37,17 +37,17 @@ export default function ChatMessage({ message, isStreaming }: ChatMessageProps) 
   const isUser = message.role === "user";
 
   return (
-    <div className={`flex gap-4 py-4 ${isUser ? "" : ""}`}>
+    <div className={`flex gap-4 py-4 ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white ${
           isUser ? "bg-blue-600" : "bg-emerald-600"
         }`}
       >
         {isUser ? <User size={16} /> : <Bot size={16} />}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+      <div className={`flex flex-col max-w-[85%] min-w-0 ${isUser ? "items-end" : "items-start"}`}>
+        <div className={`flex items-center gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
           <span className="text-sm font-semibold text-gray-800 dark:text-dark-200">
             {isUser ? "You" : "AI"}
           </span>
@@ -58,7 +58,11 @@ export default function ChatMessage({ message, isStreaming }: ChatMessageProps) 
           )}
         </div>
 
-        <div className="prose dark:prose-invert prose-sm max-w-none text-gray-855 dark:text-dark-100">
+        <div className={`prose dark:prose-invert prose-sm max-w-none text-gray-855 dark:text-dark-100 ${
+          isUser
+            ? "bg-blue-50 dark:bg-blue-900/30 px-5 py-3.5 rounded-3xl rounded-tr-sm border border-blue-100 dark:border-blue-800/40"
+            : "bg-gray-50 dark:bg-dark-800/60 px-5 py-3.5 rounded-3xl rounded-tl-sm border border-gray-200 dark:border-dark-700"
+        }`}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
