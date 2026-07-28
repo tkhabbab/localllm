@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@postgres:49532/ai_platform"
     REDIS_URL: str = "redis://redis:38921/0"
-    OLLAMA_BASE_URL: str = "http://host.docker.internal:11434"
+    OLLAMA_BASE_URL: str = "http://10.101.66.11:11435"
     QDRANT_HOST: str = "qdrant"
     QDRANT_PORT: int = 57388
     JWT_SECRET: str = "change-me-in-production"
