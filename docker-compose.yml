@@ -1,0 +1,113 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-3000}:19853"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.101.66.11:8080}
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_PORT:-8080}:27492"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:49532/${POSTGRES_DB:-ai_platform}
+      - REDIS_URL=redis://redis:38921/0
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://10.101.66.11:11434}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=57388
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production-use-a-random-string}
+      - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
+      - MODEL_GENERAL=${MODEL_GENERAL:-qwen2.5:7b}
+      - MODEL_COMPLEX=${MODEL_COMPLEX:-qwen2.5:32b}
+      - MODEL_CODING=${MODEL_CODING:-qwen2.5-coder:32b}
+      - MODEL_EMBEDDINGS=${MODEL_EMBEDDINGS:-bge-m3:latest}
+      - MODEL_FAST=${MODEL_FAST:-qwen2.5:7b}
+      - UPLOAD_DIR=/app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:16-alpine
+    command: [ "postgres", "-p", "49532" ]
+    ports:
+      - "${POSTGRES_PORT:-49532}:49532"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-ai_platform}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -p 49532 -U ${POSTGRES_USER:-postgres}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    command: [ "redis-server", "--port", "38921" ]
+    ports:
+      - "${REDIS_PORT:-38921}:38921"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "38921", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=57388
+    ports:
+      - "${QDRANT_PORT:-57388}:57388"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: [ "CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/57388" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+  uploads:
+
+networks:
+  app-network:
+    driver: bridge

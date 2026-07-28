@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply bg-white dark:bg-dark-900 text-gray-800 dark:text-dark-100 transition-colors duration-150;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: theme("colors.gray.300") transparent;
+}
+
+.dark * {
+  scrollbar-color: theme("colors.dark.600") transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: theme("colors.gray.300");
+  border-radius: 3px;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: theme("colors.dark.600");
+}
+
+.prose {
+  @apply text-gray-800 dark:text-dark-100;
+}
+
+.prose a {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.prose strong {
+  @apply text-gray-900 dark:text-dark-50;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply text-gray-900 dark:text-dark-50;
+}
+
+.prose blockquote {
+  @apply border-l-gray-300 dark:border-l-dark-600 text-gray-600 dark:text-dark-300;
+}
+
+.prose hr {
+  @apply border-gray-200 dark:border-dark-700;
+}
+
+.prose ul > li::marker,
+.prose ol > li::marker {
+  @apply text-gray-500 dark:text-dark-400;
+}
