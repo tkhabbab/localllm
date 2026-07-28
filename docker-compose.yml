@@ -6,7 +6,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-4400}:4400"
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.101.66.11:4300}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://10.101.66.11:4500}
     depends_on:
       backend:
         condition: service_started
@@ -19,7 +19,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "${BACKEND_PORT:-4300}:27492"
+      - "${BACKEND_PORT:-4500}:27492"
     environment:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:49532/${POSTGRES_DB:-ai_platform}
       - REDIS_URL=redis://redis:38921/0
