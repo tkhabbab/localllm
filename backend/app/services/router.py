@@ -124,15 +124,15 @@ def get_model_for_intent(intent: str, model_override: str | None = None) -> str:
     if model_override:
         return model_override
     
-    # Auto-mode mappings for all 5 chat models on the server:
+    settings = get_settings()
     mapping = {
-        "general": "qwen2.5:7b",
-        "conversational": "qwen3.6:27b",
-        "complex": "qwen2.5:32b",
-        "coding": "qwen2.5-coder:32b",
-        "document_qa": "qwen3:32b",
+        "general": settings.MODEL_GENERAL,
+        "conversational": settings.MODEL_GENERAL,
+        "complex": settings.MODEL_COMPLEX,
+        "coding": settings.MODEL_CODING,
+        "document_qa": settings.MODEL_COMPLEX,
     }
-    return mapping.get(intent, "qwen2.5:7b")
+    return mapping.get(intent, settings.MODEL_GENERAL)
 
 
 MODEL_DISPLAY_NAMES = {

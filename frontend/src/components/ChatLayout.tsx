@@ -73,7 +73,7 @@ export default function ChatLayout() {
   };
 
   const themeBg = useCallback((type: "primary" | "hover") => {
-    if (theme === "robi") return type === "primary" ? "bg-[#E21E26]" : "hover:bg-[#c3131b]";
+    if (theme === "robi") return type === "primary" ? "bg-[#EC1C24]" : "hover:bg-[#C30C41]";
     if (theme === "emerald") return type === "primary" ? "bg-emerald-600" : "hover:bg-emerald-500";
     if (theme === "purple") return type === "primary" ? "bg-purple-600" : "hover:bg-purple-500";
     if (theme === "rose") return type === "primary" ? "bg-rose-600" : "hover:bg-rose-500";
@@ -81,7 +81,7 @@ export default function ChatLayout() {
   }, [theme]);
 
   const themeText = useCallback(() => {
-    if (theme === "robi") return "text-[#E21E26] dark:text-[#ff4d52]";
+    if (theme === "robi") return "text-[#EC1C24] dark:text-[#ff4d52]";
     if (theme === "emerald") return "text-emerald-500 dark:text-emerald-400";
     if (theme === "purple") return "text-purple-500 dark:text-purple-400";
     if (theme === "rose") return "text-rose-500 dark:text-rose-400";
@@ -89,7 +89,7 @@ export default function ChatLayout() {
   }, [theme]);
 
   const themeBorder = useCallback(() => {
-    if (theme === "robi") return "border-[#E21E26] dark:border-[#ff4d52]";
+    if (theme === "robi") return "border-[#EC1C24] dark:border-[#ff4d52]";
     if (theme === "emerald") return "border-emerald-500";
     if (theme === "purple") return "border-purple-500";
     if (theme === "rose") return "border-rose-500";
@@ -400,7 +400,7 @@ export default function ChatLayout() {
         <div className="flex-1 overflow-y-auto">
           {!activeSession ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-dark-400">
-              <img src="/logo.png" alt="AI logo" className="w-16 h-16 mb-4 rounded-xl object-contain animate-pulse" style={{ animationDuration: '3s' }} />
+              <img src="/robi.svg" alt="Robi AI logo" className="w-16 h-16 mb-4 object-contain animate-pulse" style={{ animationDuration: '3s' }} />
               <p className="text-lg mb-2 text-gray-900 dark:text-dark-200 font-semibold">Welcome to Enterprise AI</p>
               <p className="text-sm text-gray-500 dark:text-dark-500">
                 Create a new chat or select an existing one to get started

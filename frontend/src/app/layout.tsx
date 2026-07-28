@@ -6,9 +6,9 @@ export const metadata: Metadata = {
   title: "Enterprise AI",
   description: "Self-hosted AI chat platform",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/robi.svg",
+    shortcut: "/robi.svg",
+    apple: "/robi.svg",
   },
 };
 

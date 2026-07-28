@@ -31,7 +31,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-dark-900 transition-colors">
       <div className="w-full max-w-sm p-8 bg-white dark:bg-dark-800 rounded-2xl border border-gray-200 dark:border-dark-700 shadow-xl">
         <div className="flex flex-col items-center justify-center mb-6">
-          <img src="/logo.png" alt="AI Logo" className="w-16 h-16 mb-2 rounded-xl object-contain" />
+          <img src="/robi.svg" alt="AI Logo" className="w-16 h-16 mb-2 rounded-xl object-contain" />
           <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-dark-100">
             Enterprise AI
           </h1>
