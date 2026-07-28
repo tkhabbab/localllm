@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn, formatDate } from "@/lib/utils";
 import type { GroupedSessions } from "@/lib/sessions";
-import type { ChatSession, User } from "@/types";
+import type { ChatSession, User, Document } from "@/types";
 import {
   Plus,
   MessageSquare,
@@ -30,7 +30,7 @@ interface SidebarProps {
   user: User | null;
   onLogout: () => void;
   onOpenSettings: () => void;
-  documents?: ChatSession[]; // Wait, let's use dynamic type or any since we can represent Documents.
+  documents?: Document[];
   onDeleteDocument?: (id: number) => void;
 }
 
