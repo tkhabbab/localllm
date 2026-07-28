@@ -59,7 +59,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-ai_platform}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -p 49532 -U ${POSTGRES_USER:-postgres}" ]
       interval: 5s
@@ -103,7 +103,7 @@ services:
       - app-network
 
 volumes:
-  postgres_data:
+  postgres_data_v2:
   redis_data:
   qdrant_data:
   uploads:
