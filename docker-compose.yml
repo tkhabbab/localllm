@@ -28,11 +28,11 @@ services:
       - QDRANT_PORT=57388
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production-use-a-random-string}
       - JWT_EXPIRY_HOURS=${JWT_EXPIRY_HOURS:-24}
-      - MODEL_GENERAL=${MODEL_GENERAL:-qwen2.5:7b}
-      - MODEL_COMPLEX=${MODEL_COMPLEX:-qwen3:32b}
-      - MODEL_CODING=${MODEL_CODING:-qwen2.5-coder:32b}
-      - MODEL_EMBEDDINGS=${MODEL_EMBEDDINGS:-bge-m3:latest}
-      - MODEL_FAST=${MODEL_FAST:-qwen2.5:7b}
+      - MODEL_GENERAL=qwen2.5:7b
+      - MODEL_COMPLEX=qwen3:32b
+      - MODEL_CODING=qwen2.5-coder:32b
+      - MODEL_EMBEDDINGS=bge-m3:latest
+      - MODEL_FAST=qwen2.5:7b
       - UPLOAD_DIR=/app/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
