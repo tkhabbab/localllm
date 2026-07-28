@@ -168,6 +168,8 @@ export default function Sidebar({
   user,
   onLogout,
   onOpenSettings,
+  documents,
+  onDeleteDocument,
 }: SidebarProps) {
   if (!open) return null;
 
